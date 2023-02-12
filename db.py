@@ -31,6 +31,8 @@ class DB:
                 database=config["POSTGRES_DB"],
                 user=config["POSTGRES_USER"],
                 password=config["POSTGRES_PASSWORD"],
+                host="0.0.0.0",
+                port=6543
             )
             cls.cur = cls.conn.cursor()
             cls._instance = super(DB, cls).__new__(cls)

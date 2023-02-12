@@ -1,0 +1,35 @@
+version: '2'
+services:
+  postgres:
+    image: 'postgres:9.6'
+    environment:
+      - PGDATA=/var/lib/postgresql/data/pgdata
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=postgres
+    networks:
+      - default
+      - service-proxy
+    ports:
+      - '5432:5432'
+    volumes:
+      - 'postgres:/var/lib/postgresql/data'
+    labels:
+      description: "Postgresql Database"
+      service: "postgresql"
+  app:
+    container_name: pipe_line
+    build: .
+    command: make
+    volumes:
+      - .:/opt/app/
+    ports:
+      - "8000:8000"
+    depends_on:
+      - 'postgres'
+    networks:
+      - service-proxy
+networks:
+  service-proxy:
+volumes:
+  postgres:
