@@ -12,9 +12,9 @@ import logging
 import os
 from time import perf_counter
 from helpers import (
-        create_table_from_col_names, 
-        insert_into_table_from_col_names
-        )
+    create_table_from_col_names,
+    insert_into_table_from_col_names,
+)
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -39,7 +39,7 @@ class DB:
                 user=config["POSTGRES_USER"],
                 password=config["POSTGRES_PASSWORD"],
                 host=config["POSTGRES_HOST"],
-                port=config["POSTGRES_PORT"]
+                port=config["POSTGRES_PORT"],
             )
             cls.cur = cls.conn.cursor()
             cls._instance = super(DB, cls).__new__(cls)
@@ -80,8 +80,10 @@ class DB:
             self.conn.commit()
 
             after_ds_time = perf_counter()
-    
-            logger.info(f"{after_ds_time - before_ds_time} | Inserted records from {batch} to {batch+batch_size}")
+
+            logger.info(
+                f"{after_ds_time - before_ds_time} | Inserted records from {batch} to {batch+batch_size}"
+            )
 
     def truncate_table(self):
         """
@@ -94,15 +96,20 @@ class DB:
 
         logger.info("The table has been truncated.")
 
-
-    def get_table_continuation(self, query):
+    def get_table_continuation(self):
         """
         This function returns the number of rows in the database.
         This value is to be checked with the lines in the file, as a means
         to continue insertion from the rollback point.
         """
+        query = f"SELECT count(*) FROM {self._tablename};"
 
         self.cur.execute(query)
-        self.conn.commit()
-        pass
+        try:
+            record_position = self.cur.fetchone()
+            logger.info(record_position[0])
+
+            return record_position[0]
+        except Exception as err:
+            logger.error(err)
 

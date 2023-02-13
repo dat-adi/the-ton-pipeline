@@ -21,21 +21,29 @@ def get_datasets() -> list:
     Returns the datasets present in the data directory.
     """
     try:
-        datasets = [os.path.join(DATA_DIR, x) for x in sorted(os.listdir(DATA_DIR))]
+        datasets = [
+            os.path.join(DATA_DIR, x) for x in sorted(os.listdir(DATA_DIR))
+        ]
 
         return datasets
     except FileNotFoundError:
-        logger.error("The network dataset folder is missing or the path hasn't been set properly.")
-        if input("Set your path correctly and try again? (y/n): ").lower()[0] == "y":
+        logger.error(
+            "The network dataset folder is missing or the path hasn't been set properly."
+        )
+        if (
+            input("Set your path correctly and try again? (y/n): ").lower()[0]
+            == "y"
+        ):
             get_datasets()
         exit(0)
 
-def get_col_names():
+
+def get_col_names(datasets):
     """
     Return the column names.
     """
     try:
-        with open(get_datasets()[0], "r") as csvfile:
+        with open(datasets[0], "r") as csvfile:
             csv_recs = csv.reader(csvfile)
             for row in csv_recs:
                 return row
@@ -43,6 +51,7 @@ def get_col_names():
         logger.error("The CSV file was not found")
     except Exception as err:
         logger.error(err)
+
 
 def get_records_from_dataset(dataset):
     """
@@ -58,12 +67,15 @@ def get_records_from_dataset(dataset):
 
     return records
 
+
 def create_table_from_col_names(table_name, col_names):
     """
     This function reads from the header and produces a CREATE_TABLE_QUERY.
     """
 
-    query = f"""CREATE TABLE IF NOT EXISTS {table_name}(id serial primary key, """
+    query = (
+        f"""CREATE TABLE IF NOT EXISTS {table_name}(id serial primary key, """
+    )
 
     for attribute in col_names[:-1]:
         query += attribute + " varchar(500), "
@@ -99,4 +111,8 @@ def insert_into_table_from_col_names(table_name, col_names):
 
 
 if __name__ == "__main__":
-    print(insert_into_table_from_col_names("test_table", ["attr_1", "attr_2", "attr_3", "attr_4"]))
+    print(
+        insert_into_table_from_col_names(
+            "test_table", ["attr_1", "attr_2", "attr_3", "attr_4"]
+        )
+    )
