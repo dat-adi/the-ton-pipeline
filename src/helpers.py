@@ -99,4 +99,4 @@ def insert_into_table_from_col_names(table_name, col_names):
 
 
 if __name__ == "__main__":
-    print(create_table_from_col_names("test_table", ["attr_1", "attr_2", "attr_3", "attr_4"]))
+    print(insert_into_table_from_col_names("test_table", ["attr_1", "attr_2", "attr_3", "attr_4"]))
