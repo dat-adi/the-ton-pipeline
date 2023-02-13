@@ -12,7 +12,7 @@ from pathlib import Path
 from queries import CREATE_TABLE_QUERY, INSERT_QUERY
 import os
 import logging
-from datetime import time
+from time import perf_counter
 
 logging.basicConfig(filename="logs/logger.log")
 logger = logging.getLogger(__name__)
@@ -45,7 +45,7 @@ def main() -> None:
     for dataset in datasets:
         try:
             # Loading data from datset
-            before_dataset_time = time.now()
+            before_dataset_time = perf_counter()
 
             with open(dataset, "r") as csvfile:
                 csv_recs = csv.reader(csvfile)
@@ -54,7 +54,7 @@ def main() -> None:
 
                 csvfile.close()
 
-            after_dataset_time = time.now()
+            after_dataset_time = perf_counter()
             # Update the CSV in the Database in batches of 10000 records.
             db_conn.batch_insert(INSERT_QUERY, records)
             logger.info(f"{after_dataset_time - before_dataset_time} | Inserted an entire dataset")

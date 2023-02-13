@@ -9,7 +9,7 @@ import psycopg2 as pg
 from dotenv import dotenv_values
 import logging
 import os
-from datetime import datetime
+from time import perf_counter
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -64,12 +64,36 @@ class DB:
         """
         Batch insert records into the database.
         """
-
         # There is a better way to perform this operation via mogrify, but
         # this is a testing script anyway.
         # https://stackoverflow.com/questions/8134602/psycopg2-insert-multiple-rows-with-one-query
         for batch in range(0, len(data), batch_size):
+            before_ds_time = perf_counter()
             self.cur.executemany(query, data[batch : batch + batch_size])
             self.conn.commit()
+
+            after_ds_time = perf_counter()
         
-            logger.info(f"{datetime.now()} | Inserted records from {batch} to {batch+batch_size}")
+            logger.info(f"{after_ds_time - before_ds_time} | Inserted records from {batch} to {batch+batch_size}")
+
+    def truncate_table(self, query):
+        """
+        This function truncates the entire table.
+        """
+        self.cur.execute(query)
+        self.conn.commit()
+
+        logger.info("The table has been truncated.")
+
+
+    def get_table_continuation(self, query):
+        """
+        This function returns the number of rows in the database.
+        This value is to be checked with the lines in the file, as a means
+        to continue insertion from the rollback point.
+        """
+
+        self.cur.execute(query)
+        self.conn.commit()
+        pass
+
