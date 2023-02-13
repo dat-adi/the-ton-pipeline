@@ -8,11 +8,9 @@ import unittest
 from src.helpers import (
         get_datasets,
         get_col_names,
-        get_records_from_dataset,
         create_table_from_col_names,
         insert_into_table_from_col_names
         )
-from pathlib import Path
 
 
 class HelperTest(unittest.TestCase):
@@ -26,7 +24,8 @@ class HelperTest(unittest.TestCase):
         """
         Tests the get_col_names() function.
         """
-        self.assertIsInstance(get_col_names(), list, "The datatype is incorrect.")
+        col_names = get_col_names(get_datasets())
+        self.assertIsInstance(col_names, list, "The datatype is incorrect.")
 
     def test_get_records_from_dataset(self):
         """
