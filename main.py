@@ -9,8 +9,10 @@ import csv
 from db import DB
 from typing import List
 from pathlib import Path
+from queries import CREATE_TABLE_QUERY, INSERT_QUERY
 import os
 import logging
+from datetime import time
 
 logging.basicConfig(filename="logs/logger.log")
 logger = logging.getLogger(__name__)
@@ -38,11 +40,13 @@ def main() -> None:
     logger.info("Creating the database connection")
 
     db_conn: DB = DB()
-    db_conn.create_table()
+    db_conn.create_table(CREATE_TABLE_QUERY)
 
     for dataset in datasets:
         try:
             # Loading data from datset
+            before_dataset_time = time.now()
+
             with open(dataset, "r") as csvfile:
                 csv_recs = csv.reader(csvfile)
                 for row in csv_recs:
@@ -50,9 +54,10 @@ def main() -> None:
 
                 csvfile.close()
 
+            after_dataset_time = time.now()
             # Update the CSV in the Database in batches of 10000 records.
-            db_conn.batch_insert(records)
-            logger.info("Inserted an entire dataset")
+            db_conn.batch_insert(INSERT_QUERY, records)
+            logger.info(f"{after_dataset_time - before_dataset_time} | Inserted an entire dataset")
         except FileNotFoundError as err:
             logger.error("A dataset was not found: ", err)
         except Exception as err:
