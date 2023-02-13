@@ -6,6 +6,7 @@ and returning an instance on-demand.
 @author: G V Datta Adithya
 """
 import psycopg2 as pg
+from psycopg2.extras import execute_batch
 from dotenv import dotenv_values
 import logging
 import os
@@ -67,13 +68,13 @@ class DB:
         # There is a better way to perform this operation via mogrify, but
         # this is a testing script anyway.
         # https://stackoverflow.com/questions/8134602/psycopg2-insert-multiple-rows-with-one-query
+        before_ds_time = perf_counter()
         for batch in range(0, len(data), batch_size):
-            before_ds_time = perf_counter()
-            self.cur.executemany(query, data[batch : batch + batch_size])
+            execute_batch(self.cur, query, data[batch : batch + batch_size])
             self.conn.commit()
 
             after_ds_time = perf_counter()
-        
+    
             logger.info(f"{after_ds_time - before_ds_time} | Inserted records from {batch} to {batch+batch_size}")
 
     def truncate_table(self, query):
