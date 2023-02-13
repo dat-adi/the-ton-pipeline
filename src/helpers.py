@@ -7,38 +7,37 @@ Python.
 """
 
 
-def create_table_from_header(table_name, header):
+
+def create_table_from_col_names(table_name, col_names):
     """
     This function reads from the header and produces a CREATE_TABLE_QUERY.
     """
 
     query = f"""CREATE TABLE IF NOT EXISTS {table_name}(id serial primary key, """
-    headers = header.split(",")
 
-    for attribute in headers[:-1]:
+    for attribute in col_names[:-1]:
         query += attribute + " varchar(500), "
 
-    query += headers[-1] + " varchar(500)"
+    query += col_names[-1] + " varchar(500)"
 
     query += ");"
 
     return query
 
 
-def insert_into_table_from_header(table_name, header):
+def insert_into_table_from_col_names(table_name, col_names):
     """
     This function reads from the header and produces a INSERT_TABLE_QUERY.
     """
 
     query = f"INSERT INTO {table_name}("
     parameters = ""
-    headers = header.split(",")
 
-    for attribute in headers[:-1]:
+    for attribute in col_names[:-1]:
         query += attribute + ", "
         parameters += r"%s, "
 
-    query += headers[-1]
+    query += col_names[-1]
     query += ")"
 
     parameters += "%s"
@@ -50,4 +49,4 @@ def insert_into_table_from_header(table_name, header):
 
 
 if __name__ == "__main__":
-    print(insert_into_table_from_header("test_table", "attr_1, attr_2, attr_3, attr_4"))
+    print(create_table_from_col_names("test_table", ["attr_1", "attr_2", "attr_3", "attr_4"]))

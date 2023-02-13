@@ -11,6 +11,10 @@ from dotenv import dotenv_values
 import logging
 import os
 from time import perf_counter
+from helpers import (
+        create_table_from_col_names, 
+        insert_into_table_from_col_names
+        )
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -25,10 +29,11 @@ class DB:
     """
 
     _instance = None
+    _tablename = "sdn"
 
     def __new__(cls):
         if cls._instance is None:
-            print("Creating the database")
+            logger.info("Creating the database")
             cls.conn = pg.connect(
                 database=config["POSTGRES_DB"],
                 user=config["POSTGRES_USER"],
@@ -52,23 +57,24 @@ class DB:
         """
         return self.cur
 
-    def create_table(self, query):
+    def create_table(self, col_names):
         """
         This method is in-charge of creating a table in the database to input
         data into.
         """
+        query = create_table_from_col_names(self._tablename, col_names)
 
         self.cur.execute(query)
         self.conn.commit()
 
-    def batch_insert(self, query, data, batch_size=10000) -> None:
+    def batch_insert(self, col_names, data, batch_size=10000) -> None:
         """
         Batch insert records into the database.
         """
-        # There is a better way to perform this operation via mogrify, but
-        # this is a testing script anyway.
-        # https://stackoverflow.com/questions/8134602/psycopg2-insert-multiple-rows-with-one-query
+        query = insert_into_table_from_col_names(self._tablename, col_names)
+
         before_ds_time = perf_counter()
+
         for batch in range(0, len(data), batch_size):
             execute_batch(self.cur, query, data[batch : batch + batch_size])
             self.conn.commit()
@@ -77,10 +83,12 @@ class DB:
     
             logger.info(f"{after_ds_time - before_ds_time} | Inserted records from {batch} to {batch+batch_size}")
 
-    def truncate_table(self, query):
+    def truncate_table(self):
         """
         This function truncates the entire table.
         """
+        query = f"TRUNCATE {self._tablename};"
+
         self.cur.execute(query)
         self.conn.commit()
 
