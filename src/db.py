@@ -75,7 +75,7 @@ class DB:
 
         before_ds_time = perf_counter()
 
-        for batch in range(0, len(data), batch_size):
+        for batch in range(1, len(data), batch_size):
             execute_batch(self.cur, query, data[batch : batch + batch_size])
             self.conn.commit()
 

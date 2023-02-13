@@ -5,8 +5,58 @@ Python.
 
 @author: G V Datta Adithya
 """
+import os
+from pathlib import Path
+import logging
+import csv
+
+logger = logging.getLogger(__name__)
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+DATA_DIR = os.path.join(BASE_DIR, "data/network_dataset")
 
 
+def get_datasets() -> list:
+    """
+    Returns the datasets present in the data directory.
+    """
+    try:
+        datasets = [os.path.join(DATA_DIR, x) for x in sorted(os.listdir(DATA_DIR))]
+
+        return datasets
+    except FileNotFoundError:
+        logger.error("The network dataset folder is missing or the path hasn't been set properly.")
+        if input("Set your path correctly and try again? (y/n): ").lower()[0] == "y":
+            get_datasets()
+        exit(0)
+
+def get_col_names():
+    """
+    Return the column names.
+    """
+    try:
+        with open(get_datasets()[0], "r") as csvfile:
+            csv_recs = csv.reader(csvfile)
+            for row in csv_recs:
+                return row
+    except FileNotFoundError:
+        logger.error("The CSV file was not found")
+    except Exception as err:
+        logger.error(err)
+
+def get_records_from_dataset(dataset):
+    """
+    Returns the records from the dataset.
+    """
+    records: list = []
+    with open(dataset, "r") as csvfile:
+        csv_recs = csv.reader(csvfile)
+        for row in csv_recs:
+            records.append(tuple(row))
+
+        csvfile.close()
+
+    return records
 
 def create_table_from_col_names(table_name, col_names):
     """
