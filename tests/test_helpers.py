@@ -5,7 +5,7 @@ This is the tests file for the helper functions.
 @author: G V Datta Adithya
 """
 import unittest
-from helpers import (
+from src.helpers import (
         create_table_from_header, 
         insert_into_table_from_header
         )

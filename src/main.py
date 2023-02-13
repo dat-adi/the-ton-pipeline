@@ -22,11 +22,17 @@ def get_datasets() -> list:
     """
     Returns the datasets present in the data directory.
     """
-    BASE_DIR = Path(__file__).resolve().parent
-    DATA_DIR = os.path.join(BASE_DIR, "data/network_dataset")
-    datasets = [os.path.join(DATA_DIR, x) for x in sorted(os.listdir(DATA_DIR))]
+    try:
+        BASE_DIR = Path(__file__).resolve().parent.parent
+        DATA_DIR = os.path.join(BASE_DIR, "data/network_dataset")
+        datasets = [os.path.join(DATA_DIR, x) for x in sorted(os.listdir(DATA_DIR))]
 
-    return datasets
+        return datasets
+    except FileNotFoundError:
+        logger.error("The network dataset folder is missing or the path hasn't been set properly.")
+        if input("Set your path correctly and try again? (y/n): ")[0] == "y":
+            get_datasets()
+        exit(0)
 
 
 def main() -> None:
