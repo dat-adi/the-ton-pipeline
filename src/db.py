@@ -84,12 +84,14 @@ class DBOperations:
         """
         query, parameters = insert_into_table_from_col_names(self._tablename, col_names)
 
-        before_ds_time = perf_counter()
 
         for batch in range(record_position, len(data), batch_size):
+            curr_batch = data[batch:batch+batch_size]
+
             try:
-                values = ",".join(self.cur.mogrify(parameters, i).decode('utf-8') for i in data[batch:batch+batch_size])
-                self.cur.execute(query + values + ";", data[batch : batch + batch_size])
+                values = ",".join(self.cur.mogrify(parameters, i).decode('utf-8') for i in curr_batch) + ";"
+                before_ds_time = perf_counter()
+                self.cur.execute(query + values, curr_batch)
                 self.conn.commit()
 
                 after_ds_time = perf_counter()
