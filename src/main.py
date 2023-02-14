@@ -5,7 +5,7 @@ upload the data to a postgres database hosted on a docker container.
 
 @author: G V Datta Adithya
 """
-from db import DB
+from db import DB, DBOperations
 from helpers import get_datasets, get_col_names, get_records_from_dataset
 import logging
 from time import perf_counter
@@ -27,7 +27,12 @@ def main() -> None:
     logger.info("Creating the database connection")
 
     # Creates the database
-    db_conn: DB = DB()
+    db: DB = DB()
+    db_conn: DBOperations = DBOperations(
+            db.get_cursor(),
+            db.get_connection(),
+            db.get_tablename()
+            )
     db_conn.create_table(col_names)
 
     # Getting rid of existing data through a prompt
@@ -36,17 +41,11 @@ def main() -> None:
         print("Cleared database")
 
     print("Writing records...")
-    record_position = db_conn.get_table_continuation()
-
     for dataset in get_datasets():
         try:
             # Loading data from datset
             before_dataset_time = perf_counter()
             records = get_records_from_dataset(dataset)
-            if len(records) > record_position:
-                record_position -= len(records)
-                continue
-
             after_dataset_time = perf_counter()
 
             # Update the CSV in the Database in batches of 10000 records.

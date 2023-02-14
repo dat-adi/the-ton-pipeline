@@ -6,7 +6,6 @@ and returning an instance on-demand.
 @author: G V Datta Adithya
 """
 import psycopg2 as pg
-from psycopg2.extras import execute_batch
 from dotenv import dotenv_values
 import logging
 import os
@@ -57,6 +56,18 @@ class DB:
         """
         return self.cur
 
+    def get_tablename(self):
+        """
+        Returns the tablename for the object.
+        """
+        return self._tablename
+
+class DBOperations:
+    def __init__(self, cur, conn, tablename):
+        self.cur = cur
+        self.conn = conn
+        self._tablename = tablename
+
     def create_table(self, col_names):
         """
         This method is in-charge of creating a table in the database to input
@@ -67,23 +78,29 @@ class DB:
         self.cur.execute(query)
         self.conn.commit()
 
-    def batch_insert(self, col_names, data, batch_size=10000) -> None:
+    def batch_insert(self, col_names, data, record_position=1, batch_size=10000) -> None:
         """
         Batch insert records into the database.
         """
-        query = insert_into_table_from_col_names(self._tablename, col_names)
+        query, parameters = insert_into_table_from_col_names(self._tablename, col_names)
 
         before_ds_time = perf_counter()
 
-        for batch in range(1, len(data), batch_size):
-            execute_batch(self.cur, query, data[batch : batch + batch_size])
-            self.conn.commit()
+        for batch in range(record_position, len(data), batch_size):
+            try:
+                values = ",".join(self.cur.mogrify(parameters, i).decode('utf-8') for i in data[batch:batch+batch_size])
+                self.cur.execute(query + values + ";", data[batch : batch + batch_size])
+                self.conn.commit()
 
-            after_ds_time = perf_counter()
+                after_ds_time = perf_counter()
 
-            logger.info(
-                f"{after_ds_time - before_ds_time} | Inserted records from {batch} to {batch+batch_size}"
-            )
+                logger.info(
+                    f"{after_ds_time - before_ds_time} | Inserted records from {batch} to {batch+batch_size}"
+                )
+            except KeyboardInterrupt:
+                logger.info("User interrupted the operation.")
+                print("You have interrupted the operation.")
+                exit(0)
 
     def truncate_table(self):
         """

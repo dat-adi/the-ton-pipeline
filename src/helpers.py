@@ -93,7 +93,7 @@ def insert_into_table_from_col_names(table_name, col_names):
     """
 
     query = f"INSERT INTO {table_name}("
-    parameters = ""
+    parameters = "("
 
     for attribute in col_names[:-1]:
         query += attribute + ", "
@@ -102,12 +102,10 @@ def insert_into_table_from_col_names(table_name, col_names):
     query += col_names[-1]
     query += ")"
 
-    parameters += "%s"
-    query += f" VALUES ({parameters})"
+    parameters += "%s)"
+    query += f" VALUES "
 
-    query += ";"
-
-    return query
+    return query, parameters
 
 
 if __name__ == "__main__":
