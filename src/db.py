@@ -107,26 +107,29 @@ class DBOperations:
         This function truncates the entire table.
         """
         query = f"TRUNCATE {self._tablename};"
+        sequence_reset_query = f"ALTER SEQUENCE {self._tablename}_id_seq RESTART;"
 
         self.cur.execute(query)
+        self.cur.execute(sequence_reset_query)
         self.conn.commit()
 
         logger.info("The table has been truncated.")
 
-    def get_table_continuation(self):
+    def get_table_continuation(self) -> int:
         """
         This function returns the number of rows in the database.
         This value is to be checked with the lines in the file, as a means
         to continue insertion from the rollback point.
         """
-        query = f"SELECT count(*) FROM {self._tablename};"
+        query = f"SELECT last_value FROM {self._tablename}_id_seq;"
 
-        self.cur.execute(query)
         try:
+            self.cur.execute(query)
             record_position = self.cur.fetchone()
             logger.info(record_position[0])
 
-            return record_position[0]
+            return int(record_position[0])
         except Exception as err:
-            logger.error(err)
+            logger.error("Error trying to find the last_value: ", err)
+            return 1
 

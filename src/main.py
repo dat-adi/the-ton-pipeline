@@ -40,16 +40,25 @@ def main() -> None:
         db_conn.truncate_table()
         print("Cleared database")
 
+    last_batch_set: int = db_conn.get_table_continuation()
+
     print("Writing records...")
     for dataset in get_datasets():
         try:
             # Loading data from datset
             before_dataset_time = perf_counter()
             records = get_records_from_dataset(dataset)
-            after_dataset_time = perf_counter()
+
+            # Resuming from the last batch
+            if len(records) < last_batch_set:
+                last_batch_set -= len(records)
+                logger.info(f"Skipping {dataset}")
+                continue
 
             # Update the CSV in the Database in batches of 10000 records.
-            db_conn.batch_insert(col_names, records)
+            db_conn.batch_insert(col_names, records, last_batch_set)
+            after_dataset_time = perf_counter()
+
             logger.info(
                 f"{after_dataset_time - before_dataset_time} | Inserted an entire dataset"
             )
